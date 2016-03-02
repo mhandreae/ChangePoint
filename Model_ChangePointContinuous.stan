@@ -1,6 +1,6 @@
 data {
-real<lower=0> r_e;
-real<lower=0> r_l;
+real r_e;
+real r_l;
 int<lower=1> T;
 real<lower=0> D[T];
 }
@@ -13,6 +13,7 @@ log_unif <- -log(T);
 parameters {
 real e;
 real l;
+real<lower=0> sigma;
 }
 
 transformed parameters {
@@ -26,6 +27,7 @@ lp[s] <- lp[s] + normal_log(D[t], if_else(t < s, e, l), sigma);
 model {
 e ~ normal(r_e, 10);
 l ~ normal(r_l, 10);
+sigma ~ normal(20, 5);
 increment_log_prob(log_sum_exp(lp));
 }
 
