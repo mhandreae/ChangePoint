@@ -45,6 +45,7 @@ D <- vector(mode= "integer", length = T) # y
 
 r_e <- 1 # slope before
 r_l <- 10 # slope after
+sigma <- 20 # standard deviation of error
 c=40 # change point
 
 for (i in 2:T){
@@ -53,7 +54,7 @@ for (i in 2:T){
   print(D[i])
 }
 
-D <- D +rnorm(100, 0, 20) # adding error
+D <- D +rnorm(100, 0, sigma) # adding error
 plot(D)
 ```
 
@@ -61,7 +62,7 @@ plot(D)
 ```{r compile, eval=FALSE}
 continuous_data <- list(r_e = r_e, r_l = r_l, T = T, D = D)
 
-MarginalChangePoint <- stan(file = 'Model_changePoint.stan', data = continuous_data, 
+MarginalChangePoint <- stan(file = 'Model_changePointContinuous.stan', data = continuous_data, 
             iter = 10, chains = 4)
 save(MarginalChangePoint, file="Fit/MarginalChangePoint.Rdata")
 fit1<- stan(fit=MarginalChangePoint, iter= 1000, chains = 4)

@@ -20,7 +20,7 @@ vector[T] lp;
 lp <- rep_vector(log_unif, T);
 for (s in 1:T)
 for (t in 1:T)
-lp[s] <- lp[s] + normal_log(D[t], if_else(t < s, e, l));
+lp[s] <- lp[s] + normal_log(D[t], if_else(t < s, e, l), sigma);
 }
 
 model {
