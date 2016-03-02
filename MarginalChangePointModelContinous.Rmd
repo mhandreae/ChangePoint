@@ -1,0 +1,74 @@
+---
+title: "Continuous Change Point Model by Marginalization"
+author: "Michael Andreae"
+date: "March 1, 2016"
+output: pdf_document
+---
+
+# Normal Model
+
+```{r knitr, echo=FALSE}
+suppressWarnings(library(knitr))
+```
+
+```{r globle_knitr_options, echo=FALSE}
+rm(list=ls())
+suppressWarnings(library(knitr))
+# set options
+opts_chunk$set(fig.width=6, fig.height=4, fig.path='Figs/',
+               echo=FALSE, warning=FALSE, message=FALSE)
+eval_everything=FALSE
+```
+
+```{r library}
+library(gridExtra)
+require(knitr)
+library(tidyr)
+library(rstan)
+library(rstanarm)
+library(shinystan)
+require(ggplot2)
+library(parallel)
+library(nlme)
+library(dplyr)
+```
+
+## Generate Data
+```{r generate_data}
+
+## Indicator function
+indicatorA<-function(x,y) ifelse(x<y,1,0)
+indicatorB<-function(x,y) ifelse(x>=y,1,0)
+
+T <- as.integer(100) #length of data file
+D <- vector(mode= "integer", length = T) # y
+
+r_e <- 1 # slope before
+r_l <- 10 # slope after
+c=40 # change point
+
+for (i in 2:T){
+  D[1]=100
+  D[i] <- D[i-1] + r_e*indicatorA(i,c) + r_l* indicatorB(i,c)
+  print(D[i])
+}
+
+D <- D +rnorm(100, 0, 20) # adding error
+plot(D)
+```
+
+## Compile
+```{r compile, eval=FALSE}
+continuous_data <- list(r_e = r_e, r_l = r_l, T = T, D = D)
+
+MarginalChangePoint <- stan(file = 'Model_changePoint.stan', data = continuous_data, 
+            iter = 10, chains = 4)
+save(MarginalChangePoint, file="Fit/MarginalChangePoint.Rdata")
+fit1<- stan(fit=MarginalChangePoint, iter= 1000, chains = 4)
+```
+
+
+```{r print, eval=FALSE}
+load(file="Fit/fit.Rdata")
+fit
+```

@@ -1,0 +1,139 @@
+---
+title: "Disaster Change Point Model"
+author: "Michael Andreae"
+date: "March 1, 2016"
+output: pdf_document
+---
+
+# Poisson Model
+
+```{r knitr, echo=FALSE}
+suppressWarnings(library(knitr))
+```
+
+```{r globle_knitr_options, echo=FALSE}
+rm(list=ls())
+suppressWarnings(library(knitr))
+# set options
+opts_chunk$set(fig.width=6, fig.height=4, fig.path='Figs/',
+               echo=FALSE, warning=FALSE, message=FALSE)
+eval_everything=FALSE
+```
+
+```{r library}
+library(gridExtra)
+require(knitr)
+library(tidyr)
+library(rstan)
+library(rstanarm)
+library(shinystan)
+require(ggplot2)
+library(parallel)
+library(nlme)
+library(dplyr)
+```
+
+## Generate Data
+```{r generate_data}
+r_e <- 0.02
+r_l <- 0.01
+T <- as.integer(100)
+D <- vector(mode= "integer", length = T)
+D[1:50] <- rpois(50, 100)
+D[51:100] <- rpois(50, 250)
+plot(D)
+```
+
+## Compile
+```{r compile, eval=FALSE}
+disaster_data <- list(r_e = r_e, r_l = r_l, T = T, D = D)
+
+fit <- stan(file = 'Model_changePoint.stan', data = disaster_data, 
+            iter = 1000, chains = 4)
+save(fit, file="Fit/fit.Rdata")
+launch_shinystan(fit)
+```
+
+
+```{r print, eval=FALSE}
+load(file="Fit/fit.Rdata")
+fit
+```
+
+# Continous Change point model
+
+## Data
+```{r importchangeNorm_data}
+test.data <- read.csv("Data/data.csv")
+N<- length(test.data$x)
+test.data$t<- 1:N
+g <- ggplot(test.data, aes(t,y))
+g +geom_point()
+```
+
+## Modeling
+```{r changepointNormal, eval=FALSE}
+changepoint <- stan(file = 'ChangePointNormal.stan', data = list(N=N, 
+                                                                 x=test.data$x,
+                                                                 y=test.data$y,
+                                                                 t=1:N),
+                    iter = 10, chains = 4)
+save(changepoint, file = "Fit/ChangePointNorm.Rdata")
+FittedChangePoint<- stan(fit=changepoint, iter = 1000, data = list(N=N, 
+                                                                 x=test.data$x,
+                                                                 y=test.data$y,
+                                                                 t=1:N))
+save(FittedChangePoint, file = "Fit/FittedChangePoint.Rdata")
+```
+
+## Results of continuous change point model
+
+more detailed discussion also \href{https://groups.google.com/forum/#!topic/stan-users/QlgX00f6JG8}{here}
+
+```{r cont_results}
+load("Fit/FittedChangePoint.Rdata")
+FittedChangePoint
+```
+
+From the attached example data file, and Stan recovers the true values (b = 1, db = -0.5, sigma = 0.5, Tcp = 48), with seemingly good accuracy.
+
+```{r generate_norm_data, eval=FALSE}
+
+r_e <- 0.02
+r_l <- 0.01
+T <- as.integer(100)
+
+indicatorA<-function(x,y) ifelse(x<y,1,0)
+indicatorB<-function(x,y) ifelse(x>=y,1,0)
+
+indicator(t,c)
+D <- vector(mode= "integer", length = T)
+c <- (rep(14,100))
+t<-seq(from= 1, to= 100, length = 100)
+alpha <- 600
+beta <- +1 
+gamma <- +2
+
+mysigma <- function(t,c) 1-(1/(1+exp(t-c)))
+mysigma2 <- function(t,c) 1-(1/(1+exp(c-t)))
+
+plot(mysigma(t,c))
+plot(mysigma2(t,c))
+plot(mysigma(t,c)+ mysigma2(t,c))
+
+plot(t)
+1-(1/(1+exp(0)))
+
+D <- alpha + (beta*mysigma(t,c) + gamma*mysigma2(t,c)) *t
+plot(D)
+D[1:50] <- 1:50
+D[51:100] <-(51:100)*2
+plot(beta + gamma*mysigma(t,c))
+
+plot(D[5460:5550])
+plot(D)
+plot(D2)
+
+kable(data.frame(mysigma(t,c)))
+plot(rexp(100,0.01))
+```
