@@ -72,14 +72,10 @@ fit1 <- stan(fit=MarginalChangePoint, iter= 1000, chains = 4,
              data= continuous_data)
 save(fit1, file="Fit/fit1.Rdata")
 ```
-Sampling with 1000 iteration and four chains
 
+## results
 ```{r print_model1}
 load(file="Fit/fit1.Rdata")
 print(fit1, pars = c("l", "e", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
-l
-e
-c[1]
-sigma
 ```
-
+The estimates correspond to the parameters used to generate the data.
