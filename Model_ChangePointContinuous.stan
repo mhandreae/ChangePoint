@@ -21,13 +21,13 @@ vector[T] lp;
 lp <- rep_vector(log_unif, T);
 for (s in 1:T)
 for (t in 1:T)
-lp[s] <- lp[s] + normal_log(D[t], if_else(t < s, e, l), sigma);
+lp[s] <- lp[s] + normal_log(D[t], if_else(t < s, t*e, (s*e + (t-s)*l)), sigma);
 }
 
 model {
 e ~ normal(r_e, 10);
 l ~ normal(r_l, 10);
-sigma ~ normal(20, 5);
+sigma ~ normal(20, 10);
 increment_log_prob(log_sum_exp(lp));
 }
 

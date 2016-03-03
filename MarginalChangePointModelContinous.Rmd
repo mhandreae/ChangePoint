@@ -57,8 +57,9 @@ plot(D)
 ```{r compile, eval=FALSE}
 continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma)
 
-MarginalChangePoint <- stan(file = 'Model_changePointContinuous.stan', data = continuous_data, 
-            iter = 100, chains = 4)
+MarginalChangePoint <- stan(file = 'Model_changePointContinuous.stan', 
+                            data = continuous_data, 
+                            iter = 10, chains = 4)
 save(MarginalChangePoint, file="Fit/MarginalChangePoint.Rdata")
 fit1 <- stan(fit=MarginalChangePoint, iter= 1000, chains = 4, data= continuous_data)
 ```
