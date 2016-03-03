@@ -2,7 +2,7 @@ data {
 real r_e;
 real r_l;
 int<lower=1> T;
-real<lower=0> D[T];
+real D[T];
 }
 
 transformed data {

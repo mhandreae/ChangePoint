@@ -51,6 +51,7 @@ t <- as.integer(1:T)
 D <- ifelse((t<c), t*e,( c*e + (t-c)*l)) + rnorm(100, 0, sigma)
 
 plot(D)
+min(D)
 ```
 
 ## Compile
@@ -61,7 +62,8 @@ MarginalChangePoint <- stan(file = 'Model_changePointContinuous.stan',
                             data = continuous_data, 
                             iter = 10, chains = 4)
 save(MarginalChangePoint, file="Fit/MarginalChangePoint.Rdata")
-fit1 <- stan(fit=MarginalChangePoint, iter= 1000, chains = 4, data= continuous_data)
+fit1 <- stan(fit=MarginalChangePoint, iter= 100, chains = 4, 
+             data= continuous_data)
 ```
 
 
