@@ -46,15 +46,10 @@ D <- vector(mode= "integer", length = T) # y
 e <- 1 # slope before
 l <- 10 # slope after
 sigma <- 20 # standard deviation of error
-c=40 # change point
+c <- as.integer(rep(40, T)) # change point
+t <- as.integer(1:T)
+D <- ifelse((t<c), t*e,( c*e + (t-c)*l)) + rnorm(100, 0, sigma)
 
-for (i in 2:T){
-  D[1]=100
-  D[i] <- D[i-1] + e*indicatorA(i,c) + l* indicatorB(i,c)
-  print(D[i])
-}
-
-D <- D +rnorm(100, 0, sigma) # adding error
 plot(D)
 ```
 
