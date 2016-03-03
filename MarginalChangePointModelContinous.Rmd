@@ -63,7 +63,8 @@ MarginalChangePoint <- stan(file = 'Model_changePointContinuous.stan',
 save(MarginalChangePoint, file="Fit/MarginalChangePoint.Rdata")
 ```
 
-```{r sample}
+## Sampling
+```{r sample, eval=FALSE}
 load(file="Fit/MarginalChangePoint.Rdata")
 continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma)
 
@@ -71,10 +72,14 @@ fit1 <- stan(fit=MarginalChangePoint, iter= 1000, chains = 4,
              data= continuous_data)
 save(fit1, file="Fit/fit1.Rdata")
 ```
+Sampling with 1000 iteration and four chains
 
-
-```{r print, eval=FALSE}
+```{r print_model1}
 load(file="Fit/fit1.Rdata")
-fit1
+print(fit1, pars = c("l", "e", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
+l
+e
+c[1]
+sigma
 ```
 
