@@ -352,7 +352,18 @@ continuous_data <- list(r_e = 1, r_l = 10,
 MarginalChangePoint5 <- stan(file = 'Model_changePointContinuous5.stan', 
                               data= continuous_data,
                              iter = 10, chains = 4)
-save(MarginalChangePoint2, file="Fit/MarginalChangePoint2.Rdata")
+save(MarginalChangePoint5, file="Fit/MarginalChangePoint5.Rdata")
 ```
 
+
+## Sampling with five patients
+```{r sample_M5, eval=FALSE}
+load(file="Fit/MarginalChangePoint5.Rdata")
+continuous_data <- list(r_e = 1, r_l = 10, 
+                        T = length(observed), D = D, sigma=sigma)
+
+fit5 <- stan(fit=MarginalChangePoint5, iter= 1000, chains = 4, 
+             data= continuous_data, cores = 4)
+save(fit5, file="Fit/fit5.Rdata")
+```
 But Stan crashes for unexplained reason. error message saved as *error Model 5.txt*
