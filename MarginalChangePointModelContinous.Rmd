@@ -370,9 +370,9 @@ save(fit5, file="Fit/fit5.Rdata")
 ```
 
 ## Results for model 5 with irregular observations
-```{r print_model4}
+```{r print_model5}
 load(file="Fit/fit5.Rdata")
 print(fit5, pars = c("e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
 ```
 
-Stan estimates pretty well, but sampling takes a long time.
+Stan estimates pretty well.
