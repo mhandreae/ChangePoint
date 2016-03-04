@@ -4,7 +4,7 @@ real r_e; # prior mean for early slope
 real r_l; # prior mean for late slope
 int<lower=1> T; # number of time points
 int<lower=1> n; # number of unique patients
-int<lower=1> observed[T,n] #index of times at which data are observed
+int<lower=1> observed[T,n]; #index of times at which data are observed
 real D[T,n]; # Data of y 
 }
 
@@ -26,7 +26,7 @@ lp <- rep_vector(log_unif, T);
 for (s in 1:T)
 for (t in 1:T)
 for (id in 1:n)
-lp[s] <- lp[s] + normal_log(D[t, id], if_else(observed[t] < s, (a[id] +observed[t]*e), (a[id] +s*e +(observed[t]-s)*l) ), sigma);
+lp[s] <- lp[s] + normal_log(D[t, id], if_else(observed[t,id] < s, (a[id] +observed[t,id]*e), (a[id] +s*e +(observed[t,id]-s)*l) ), sigma);
 }
 
 model {

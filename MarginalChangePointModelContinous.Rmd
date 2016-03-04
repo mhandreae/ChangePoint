@@ -412,11 +412,13 @@ for (y in 1:n){Y[,y] <- D[observed[,y],y]}
 
 c <- c[observed[,1]] # cut change points repetition to fit number of selected
 
-continuous_data6 <- list(r_e = 1, r_l = 10, 
-                        T = length(observed), 
-                        D = Y,
-                        observed=observed,
-                        sigma=sigma)
+continuous_data6 <- list(r_a=50,
+                         r_e = 1, 
+                         r_l = 10, 
+                         T = length(observed), 
+                         D = Y,
+                         observed=observed,
+                         sigma=sigma)
 save(Y, observed, c, file = "Data/generated_data6.Rdata")
 save(continuous_data6, file = "Data/continuous_data6.Rdata")
 ```
