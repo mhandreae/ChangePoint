@@ -191,7 +191,7 @@ print(fit3, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
 The estimates of the third model M3 is not as good as previous models. M3 is biased with regards to the intercept and the early slope.
 
 ## Generate data
-```{r generate_data_model3}
+```{r generate_data_model3b}
 
 T <- as.integer(100) #length of data file
 n <- 5 # number of unique patients
@@ -225,12 +225,77 @@ g +geom_point(aes(t,y1)) +
 
 We generate five patient data sets with the same change point.
 
-## Sampling with 2 patients
-```{r sample_M3, eval=FALSE}
+## Sampling with five patients
+```{r sample_M3b, eval=FALSE}
 load(file="Fit/MarginalChangePoint3.Rdata")
 continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma, n=n)
 
 fit3b <- stan(fit=MarginalChangePoint3, iter= 1000, chains = 4, 
              data= continuous_data)
-save(fit3, file="Fit/fit3b.Rdata")
+save(fit3b, file="Fit/fit3b.Rdata")
+```
+Sampling with 1000 iterations takes 
+
+## Results for five patients
+```{r print_model3}
+load(file="Fit/fit3b.Rdata")
+print(fit3b, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
+```
+The estimates of the third model M3 with five patients
+
+# Model 4 with random intercept
+
+## Generate data
+```{r generate_data_model4}
+
+T <- as.integer(100) #length of data file
+n <- 5 # number of unique patients
+D <- matrix(vector(mode= "integer", length = T*n), ncol = n) # y
+
+a <- rnorm(n, 50, 50) # common intercept
+e <- 1 # slope before change point 
+l <- 10 # slope after change point
+sigma <- 20 # standard deviation of error
+c <- as.integer(rep(40, T)) # change point
+t <- as.integer(1:T)
+
+for (id in 1:n) {
+  D[,id] <- ifelse((t<c), (a[id] +t*e),(a[id] +c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+}
+
+mydata <- data.frame(y1 = D[,1], 
+                     y2 = D[,2], 
+                     y3 = D[,3],
+                     y4 = D[,4],
+                     y5 = D[,5],
+                     time=t, c=c)
+g<- ggplot(mydata)
+g +geom_point(aes(t,y1)) +
+  geom_point(aes(t,y2, colour="green")) +
+  geom_point(aes(t,y3, colour="blue")) +
+  geom_point(aes(t,y4, colour="yellow")) +  
+  geom_point(aes(t,y5, colour="red")) +
+  theme_minimal() +geom_vline(xintercept = c)
+```
+
+## Compile
+```{r compile_M4, eval=FALSE}
+continuous_data <- list(r_a = 50, r_e = 1, r_l = 10, 
+                        T = T, D = D, sigma=sigma, n=n)
+
+MarginalChangePoint4 <- stan(file = 'Model_changePointContinuous4.stan', 
+                              data= continuous_data,
+                             iter = 10, chains = 4)
+save(MarginalChangePoint4, file="Fit/MarginalChangePoint4.Rdata")
+```
+
+## Sampling with five patients
+```{r sample_M4, eval=FALSE}
+load(file="Fit/MarginalChangePoint4.Rdata")
+continuous_data <- list(r_a = 50, r_e = 1, r_l = 10, 
+                        T = T, D = D, sigma=sigma, n=n)
+
+fit4 <- stan(fit=MarginalChangePoint4, iter= 1000, chains = 4, 
+             data= continuous_data)
+save(fit4, file="Fit/fit4.Rdata")
 ```
