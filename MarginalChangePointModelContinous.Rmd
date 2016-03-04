@@ -120,7 +120,7 @@ save(MarginalChangePoint2, file="Fit/MarginalChangePoint2.Rdata")
 load(file="Fit/MarginalChangePoint2.Rdata")
 continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma)
 
-fit1 <- stan(fit=MarginalChangePoint2, iter= 1000, chains = 4, 
+fit2 <- stan(fit=MarginalChangePoint2, iter= 1000, chains = 4, 
              data= continuous_data)
-save(fit1, file="Fit/fit1.Rdata")
+save(fit2, file="Fit/fit2.Rdata")
 ```
