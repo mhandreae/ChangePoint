@@ -4,6 +4,7 @@ real r_e; # prior mean for early slope
 real r_l; # prior mean for late slope
 int<lower=1> T; # number of time points
 int<lower=1> n; # number of unique patients
+int<lower=1> observed[T,n] #index of times at which data are observed
 real D[T,n]; # Data of y 
 }
 

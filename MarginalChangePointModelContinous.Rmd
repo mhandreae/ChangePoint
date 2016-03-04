@@ -413,7 +413,10 @@ for (y in 1:n){Y[,y] <- D[observed[,y],y]}
 c <- c[observed[,1]] # cut change points repetition to fit number of selected
 
 continuous_data6 <- list(r_e = 1, r_l = 10, 
-                        T = length(observed), D = Y, sigma=sigma)
+                        T = length(observed), 
+                        D = Y,
+                        observed=observed,
+                        sigma=sigma)
 save(Y, observed, c, file = "Data/generated_data6.Rdata")
 save(continuous_data6, file = "Data/continuous_data6.Rdata")
 ```
@@ -442,7 +445,7 @@ g +geom_point(aes(observed[,1],y1)) +
 load(file = "Data/continuous_data6.Rdata")
 
 MarginalChangePoint6 <- stan(file = 'Model_changePointContinuous6.stan', 
-                              data= continuous_data,
+                              data= continuous_data6,
                              iter = 10, chains = 4)
 save(MarginalChangePoint6, file="Fit/MarginalChangePoint6.Rdata")
 ```
