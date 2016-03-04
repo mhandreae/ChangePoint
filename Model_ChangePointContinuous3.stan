@@ -12,9 +12,10 @@ log_unif <- -log(T);
 }
 
 parameters {
-real e;
-real l;
-real<lower=0> sigma;
+real a; # intercept
+real e; # slope before change point
+real l; # slope after change point
+real<lower=0> sigma; # error (SD)
 }
 
 transformed parameters {
@@ -23,7 +24,7 @@ lp <- rep_vector(log_unif, T);
 for (s in 1:T)
 for (t in 1:T)
 for (id in 1:n)
-lp[s] <- lp[s] + normal_log(D[t, id], if_else(t < s, t*e, (s*e + (t-s)*l)), sigma);
+lp[s] <- lp[s] + normal_log(D[t, id], if_else(t < s, (a +t*e), (a +s*e +(t-s)*l) ), sigma);
 }
 
 model {

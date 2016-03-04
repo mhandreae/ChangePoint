@@ -87,7 +87,8 @@ The estimates correspond to the parameters used to generate the data.
 ```{r generate_data_model2}
 
 T <- as.integer(100) #length of data file
-D <- matrix(vector(mode= "integer", length = T*2), ncol = 2) # y
+n <- 2 # number of unique patients
+D <- matrix(vector(mode= "integer", length = T*2), ncol = n) # y
 
 e <- 1 # slope before
 l <- 10 # slope after
@@ -95,8 +96,8 @@ sigma <- 20 # standard deviation of error
 c <- as.integer(rep(40, T)) # change point
 t <- as.integer(1:T)
 
-for (p in 1:2) {
-  D[,p] <- ifelse((t<c), t*e,( c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+for (id in 1:n) {
+  D[,id] <- ifelse((t<c), t*e,( c*e + (t-c)*l)) + rnorm(100, 0, sigma)
 }
 
 mydata <- data.frame(y1 = D[,1], y2 = D[,2], time=t, c=c)
@@ -105,9 +106,11 @@ g +geom_point(aes(t,y1)) +geom_point(aes(t,y2, color="green")) +
   theme_minimal() +geom_vline(xintercept = c)
 ```
 
+We generate two patient data sets with the same change point.
+
 ## Compile
 ```{r compile_M2, eval=FALSE}
-continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma)
+continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma, n=n)
 
 MarginalChangePoint2 <- stan(file = 'Model_changePointContinuous2.stan', 
                               data= continuous_data,
@@ -118,9 +121,16 @@ save(MarginalChangePoint2, file="Fit/MarginalChangePoint2.Rdata")
 ## Sampling
 ```{r sample_M2, eval=FALSE}
 load(file="Fit/MarginalChangePoint2.Rdata")
-continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma)
+continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma, n=n)
 
 fit2 <- stan(fit=MarginalChangePoint2, iter= 1000, chains = 4, 
              data= continuous_data)
 save(fit2, file="Fit/fit2.Rdata")
 ```
+
+## Results
+```{r print_model2}
+load(file="Fit/fit2.Rdata")
+print(fit2, pars = c("l", "e", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
+```
+The estimates of the second model M2 correspond to the parameters used to generate the data.
