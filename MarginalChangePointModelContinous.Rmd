@@ -376,3 +376,73 @@ print(fit5, pars = c("e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
 ```
 
 Stan estimates pretty well.
+
+# Model 6
+
+implement irregular times observation to advanced model
+
+## Generate data
+```{r generate_data_model6, eval=FALSE}
+
+T <- as.integer(100) #length of data file
+n <- 5 # number of unique patients
+z <- as.integer(80) # number observations selected from D
+D <- matrix(vector(mode= "integer", length = T*n), ncol = n) # Data generated
+Y <- matrix(vector(mode= "integer", length = z*n), ncol = n) # Y selected
+observed <- matrix(vector(mode= "integer", length = z*n), ncol = n) # Time index
+
+a <- rnorm(n, 50, 100) # common intercept
+e <- 1 # slope before change point 
+l <- 10 # slope after change point
+sigma <- 20 # standard deviation of error
+c <- as.integer(rep(40, T)) # change point
+t <- as.integer(1:T)
+
+for (id in 1:n) {
+  D[,id] <- ifelse((t<c), (a[id] +t*e),(a[id] +c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+}
+
+# select a random subset without replacement
+for (o in 1:n){
+observed[,o] <- sort(sample(t, z))
+}
+
+# pick the subset using the indices of observed
+for (y in 1:n){Y[,y] <- D[observed[,y],y]}
+
+c <- c[observed[,1]] # cut change points repetition to fit number of selected
+
+continuous_data6 <- list(r_e = 1, r_l = 10, 
+                        T = length(observed), D = D, sigma=sigma)
+save(Y, observed, c, file = "Data/generated_data6.Rdata")
+save(continuous_data6, file = "Data/continuous_data6.Rdata")
+```
+
+## Plot generated data
+```{r plot_generated-data6}
+load("Data/generated_data6.Rdata")
+mydata <- data.frame(y1 = Y[,1], 
+                     y2 = Y[,2], 
+                     y3 = Y[,3],
+                     y4 = Y[,4],
+                     y5 = Y[,5],
+                     observed=observed, c=c)
+
+g<- ggplot(mydata)
+g +geom_point(aes(observed[,1],y1)) +
+  geom_point(aes(observed[,2],y2, colour="green")) +
+  geom_point(aes(observed[,3],y3, colour="blue")) +
+  geom_point(aes(observed[,4],y4, colour="yellow")) +  
+  geom_point(aes(observed[,5],y5, colour="red")) +
+  theme_minimal() +geom_vline(xintercept = c)
+```
+
+## Compile
+```{r compile_M6, eval=FALSE}
+load(file = "Data/continuous_data6.Rdata")
+
+MarginalChangePoint6 <- stan(file = 'Model_changePointContinuous6.stan', 
+                              data= continuous_data,
+                             iter = 10, chains = 4)
+save(MarginalChangePoint6, file="Fit/MarginalChangePoint6.Rdata")
+```
