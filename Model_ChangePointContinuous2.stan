@@ -18,10 +18,11 @@ real<lower=0> sigma;
 
 transformed parameters {
 vector[T] lp;
-lp <- rep_matrix(log_unif, T, 2);
+lp <- rep_vector(log_unif, T);
 for (s in 1:T)
 for (t in 1:T)
-lp[s,1] <- lp[s,1] + normal_log(D[t], if_else(t < s, t*e, (s*e + (t-s)*l)), sigma);
+for (p in 1:2)
+lp[s] <- lp[s] + normal_log(D[t, p], if_else(t < s, t*e, (s*e + (t-s)*l)), sigma);
 }
 
 model {

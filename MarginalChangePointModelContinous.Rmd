@@ -86,5 +86,30 @@ The estimates correspond to the parameters used to generate the data.
 ## Generate data
 ```{r generate_data_model2}
 
+T <- as.integer(100) #length of data file
+D <- matrix(vector(mode= "integer", length = T*2), ncol = 2) # y
 
+e <- 1 # slope before
+l <- 10 # slope after
+sigma <- 20 # standard deviation of error
+c <- as.integer(rep(40, T)) # change point
+t <- as.integer(1:T)
+
+for (p in 1:2) {
+  D[,p] <- ifelse((t<c), t*e,( c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+}
+
+mydata <- data.frame(y1 = D[,1], y2 = D[,2], time=t, c=c)
+g<- ggplot(mydata)
+g +geom_point(aes(t,y1)) +geom_point(aes(t,y2, color="green")) +
+  theme_minimal() +geom_vline(xintercept = c)
+```
+
+## Compile
+```{r compile_M2, eval=FALSE}
+continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma)
+
+MarginalChangePoint <- stan(file = 'Model_changePointContinuous2.stan', 
+                            iter = 10, chains = 4)
+save(MarginalChangePoint, file="Fit/MarginalChangePoint.Rdata")
 ```
