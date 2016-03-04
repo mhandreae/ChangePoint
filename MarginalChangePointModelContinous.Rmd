@@ -241,7 +241,7 @@ Sampling with 1000 iterations takes
 load(file="Fit/fit3b.Rdata")
 print(fit3b, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
 ```
-The estimates of the third model M3 with five patients
+The estimates of the third model M3 with five patients estimates will, but did not achieve complete convergence at 1000 iterations.
 
 # Model 4 with random intercept
 
@@ -298,4 +298,10 @@ continuous_data <- list(r_a = 50, r_e = 1, r_l = 10,
 fit4 <- stan(fit=MarginalChangePoint4, iter= 1000, chains = 4, 
              data= continuous_data)
 save(fit4, file="Fit/fit4.Rdata")
+```
+
+## Results for five patients
+```{r print_model4}
+load(file="Fit/fit4.Rdata")
+print(fit4, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
 ```
