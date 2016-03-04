@@ -237,7 +237,7 @@ save(fit3b, file="Fit/fit3b.Rdata")
 Sampling with 1000 iterations takes much longer for 5 patients.
 
 ## Results for five patients
-```{r print_model3}
+```{r print_model3b, eval=FALSE}
 load(file="Fit/fit3b.Rdata")
 print(fit3b, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
 ```
@@ -307,10 +307,10 @@ print(fit4, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
 ```
 # Model 5 with observations at uneven time points 
 
-crashes for unexplained reason
+crashes for unexplained reason. error message saved as *error Model 5.txt*
 
 ## Generate data
-```{r generate_data_model2}
+```{r generate_data_model5}
 
 T <- as.integer(100) # length of data file
 n <- 1 # number of unique patients
