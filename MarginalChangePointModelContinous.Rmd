@@ -296,7 +296,7 @@ continuous_data <- list(r_a = 50, r_e = 1, r_l = 10,
                         T = T, D = D, sigma=sigma, n=n)
 
 fit4 <- stan(fit=MarginalChangePoint4, iter= 1000, chains = 4, 
-             data= continuous_data)
+             data= continuous_data, cores = 4)
 save(fit4, file="Fit/fit4.Rdata")
 ```
 
