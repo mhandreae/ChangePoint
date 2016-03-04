@@ -231,10 +231,10 @@ load(file="Fit/MarginalChangePoint3.Rdata")
 continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma, n=n)
 
 fit3b <- stan(fit=MarginalChangePoint3, iter= 1000, chains = 4, 
-             data= continuous_data)
+             data= continuous_data, cores = 4)
 save(fit3b, file="Fit/fit3b.Rdata")
 ```
-Sampling with 1000 iterations takes 
+Sampling with 1000 iterations takes much longer for 5 patients.
 
 ## Results for five patients
 ```{r print_model3}
