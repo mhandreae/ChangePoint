@@ -334,7 +334,9 @@ for (id in 1:n) {
   D[,id] <- ifelse((t<c), t*e,( c*e + (t-c)*l)) + rnorm(100, 0, sigma)
 }
 
-observed <- as.integer(runif(80, 1,101))
+# select a random subset without replacement
+observed <- sort(sample(t, 80))
+
 D <- D[observed]
 c <- c[observed]
 
@@ -366,4 +368,3 @@ fit5 <- stan(fit=MarginalChangePoint5, iter= 1000, chains = 4,
              data= continuous_data, cores = 4)
 save(fit5, file="Fit/fit5.Rdata")
 ```
-But Stan crashes for unexplained reason. error message saved as *error Model 5.txt*
