@@ -1,0 +1,358 @@
+---
+title: "Continuous Change Point Model by Marginalization"
+author: "Michael Andreae"
+date: "March 1, 2016"
+output: pdf_document
+---
+
+
+```{r knitr, echo=FALSE}
+suppressWarnings(library(knitr))
+```
+
+```{r globle_knitr_options, echo=FALSE}
+rm(list=ls())
+suppressWarnings(library(knitr))
+# set options
+opts_chunk$set(fig.width=6, fig.height=4, fig.path='Figs/',
+               echo=FALSE, warning=FALSE, message=FALSE)
+eval_everything=FALSE
+```
+
+```{r library}
+library(gridExtra)
+require(knitr)
+library(tidyr)
+library(rstan)
+library(rstanarm)
+library(shinystan)
+library(ggplot2)
+library(parallel)
+library(nlme)
+library(dplyr)
+```
+
+# Normal Model 1
+
+Simple model of one set of repeated continous measures with one change point (s=40) and a pre (e=1) and a post (l=10) slope, with some random error (sigma =20).
+
+## Generate Data
+```{r generate_data}
+
+T <- as.integer(100) #length of data file
+D <- vector(mode= "integer", length = T) # y
+
+e <- 1 # slope before
+l <- 10 # slope after
+sigma <- 20 # standard deviation of error
+c <- as.integer(rep(40, T)) # change point
+t <- as.integer(1:T)
+D <- ifelse((t<c), t*e,( c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+
+mydata <- data.frame(y=D, time=t, c=c)
+g<- ggplot(mydata)
+g+ geom_point(aes(t,y)) +theme_minimal() +geom_vline(xintercept = c)
+```
+
+## Compile
+```{r compile, eval=FALSE}
+continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma)
+
+Model_ChangePoint1 <- stan(file = 'Model_ChangePoint1.stan', 
+                            data = continuous_data, 
+                            iter = 10, chains = 4)
+save(Model_ChangePoint1, file="Fit/Model_ChangePoint1.Rdata")
+```
+
+## Sampling
+```{r sample, eval=FALSE}
+load(file="Fit/MarginalChangePoint.Rdata")
+continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma)
+
+fit1 <- stan(fit=MarginalChangePoint, iter= 1000, chains = 4, 
+             data= continuous_data)
+save(fit1, file="Fit/fit1.Rdata")
+```
+
+## Results
+```{r print_model1}
+load(file="Fit/fit1.Rdata")
+print(fit1, pars = c("e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
+```
+The estimates correspond to the parameters used to generate the data.
+
+# Normal Model 2
+
+We generate two patient data sets with the same change point.
+
+## Generate data
+```{r generate_data_model2}
+
+T <- as.integer(100) #length of data file
+n <- 2 # number of unique patients
+D <- matrix(vector(mode= "integer", length = T*2), ncol = n) # y
+
+e <- 1 # slope before
+l <- 10 # slope after
+sigma <- 20 # standard deviation of error
+c <- as.integer(rep(40, T)) # change point
+t <- as.integer(1:T)
+
+for (id in 1:n) {
+  D[,id] <- ifelse((t<c), t*e,( c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+}
+
+mydata <- data.frame(y1 = D[,1], y2 = D[,2], time=t, c=c)
+g<- ggplot(mydata)
+g +geom_point(aes(t,y1)) +geom_point(aes(t,y2, color="green")) +
+  theme_minimal() +geom_vline(xintercept = c)
+```
+
+## Compile
+```{r compile_M2, eval=FALSE}
+continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma, n=n)
+
+MarginalChangePoint2 <- stan(file = 'Model_changePointContinuous2.stan', 
+                              data= continuous_data,
+                             iter = 10, chains = 4)
+save(MarginalChangePoint2, file="Fit/MarginalChangePoint2.Rdata")
+```
+
+## Sampling
+```{r sample_M2, eval=FALSE}
+load(file="Fit/MarginalChangePoint2.Rdata")
+continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma, n=n)
+
+fit2 <- stan(fit=MarginalChangePoint2, iter= 1000, chains = 4, 
+             data= continuous_data)
+save(fit2, file="Fit/fit2.Rdata")
+```
+
+## Results
+```{r print_model2}
+load(file="Fit/fit2.Rdata")
+print(fit2, pars = c("e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
+```
+The estimates of the second model M2 correspond to the parameters used to generate the data.
+
+# Normal Model 3
+
+We generate two patient data sets with the same change point and a common intercept (a=50).
+
+## Generate data
+```{r generate_data_model3}
+
+T <- as.integer(100) #length of data file
+n <- 2 # number of unique patients
+D <- matrix(vector(mode= "integer", length = T*2), ncol = n) # y
+
+a <- 50 # common intercept
+e <- 1 # slope before change point 
+l <- 10 # slope after change point
+sigma <- 20 # standard deviation of error
+c <- as.integer(rep(40, T)) # change point
+t <- as.integer(1:T)
+
+for (id in 1:n) {
+  D[,id] <- ifelse((t<c), (a +t*e),(a +c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+}
+
+mydata <- data.frame(y1 = D[,1], y2 = D[,2], time=t, c=c)
+g<- ggplot(mydata)
+g +geom_point(aes(t,y1)) +geom_point(aes(t,y2, color="green")) +
+  theme_minimal() +geom_vline(xintercept = c)
+```
+
+
+## Compile
+```{r compile_M3, eval=FALSE}
+continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma, n=n)
+
+MarginalChangePoint3 <- stan(file = 'Model_changePointContinuous3.stan', 
+                              data= continuous_data,
+                             iter = 10, chains = 4)
+save(MarginalChangePoint3, file="Fit/MarginalChangePoint3.Rdata")
+```
+
+## Sampling with 2 patients
+```{r sample_M3, eval=FALSE}
+load(file="Fit/MarginalChangePoint3.Rdata")
+continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma, n=n)
+
+fit3 <- stan(fit=MarginalChangePoint3, iter= 1000, chains = 4, 
+             data= continuous_data)
+save(fit3, file="Fit/fit3.Rdata")
+```
+
+## Results for two patients
+```{r print_model3}
+load(file="Fit/fit3.Rdata")
+print(fit3, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
+```
+The estimates of the third model M3 is not as good as previous models. M3 is biased with regards to the intercept and the early slope.
+
+# Normal Model 3b
+
+We generate **five** patient data sets with the same change point and a common intercept (a=50) to see if additional data improves the parameter estimates.
+
+## Generate data
+```{r generate_data_model3b}
+
+T <- as.integer(100) #length of data file
+n <- 5 # number of unique patients
+D <- matrix(vector(mode= "integer", length = T*n), ncol = n) # y
+
+a <- rep(50, n) # common intercept
+e <- 1 # slope before change point 
+l <- 10 # slope after change point
+sigma <- 20 # standard deviation of error
+c <- as.integer(rep(40, T)) # change point
+t <- as.integer(1:T)
+
+for (id in 1:n) {
+  D[,id] <- ifelse((t<c), (a +t*e),(a +c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+}
+
+mydata <- data.frame(y1 = D[,1], 
+                     y2 = D[,2], 
+                     y3 = D[,3],
+                     y4 = D[,4],
+                     y5 = D[,5],
+                     time=t, c=c)
+g<- ggplot(mydata)
+g +geom_point(aes(t,y1)) +
+  geom_point(aes(t,y2, colour="green")) +
+  geom_point(aes(t,y3, colour="blue")) +
+  geom_point(aes(t,y4, colour="yellow")) +  
+  geom_point(aes(t,y5, colour="red")) +
+  theme_minimal() +geom_vline(xintercept = c)
+```
+
+## Sampling with five patients
+```{r sample_M3b, eval=FALSE}
+load(file="Fit/MarginalChangePoint3.Rdata")
+continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma, n=n)
+
+fit3b <- stan(fit=MarginalChangePoint3, iter= 1000, chains = 4, 
+             data= continuous_data, cores = 4)
+save(fit3b, file="Fit/fit3b.Rdata")
+```
+Sampling with 1000 iterations takes much longer for 5 patients.
+
+## Results for five patients
+```{r print_model3b}
+load(file="Fit/fit3b.Rdata")
+print(fit3b, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
+```
+The estimates of the third model M3b with **five** patients estimates reasonably well, albeith with a slight bias?
+
+# Model 4 with random intercept
+
+We generalize to allow patient to have a random intercept a_i ~ N(50,50)
+
+## Generate data
+```{r generate_data_model4}
+
+T <- as.integer(100) #length of data file
+n <- 5 # number of unique patients
+D <- matrix(vector(mode= "integer", length = T*n), ncol = n) # y
+
+a <- rnorm(n, 50, 50) # common intercept
+e <- 1 # slope before change point 
+l <- 10 # slope after change point
+sigma <- 20 # standard deviation of error
+c <- as.integer(rep(40, T)) # change point
+t <- as.integer(1:T)
+
+for (id in 1:n) {
+  D[,id] <- ifelse((t<c), (a[id] +t*e),(a[id] +c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+}
+
+mydata <- data.frame(y1 = D[,1], 
+                     y2 = D[,2], 
+                     y3 = D[,3],
+                     y4 = D[,4],
+                     y5 = D[,5],
+                     time=t, c=c)
+g<- ggplot(mydata)
+g +geom_point(aes(t,y1)) +
+  geom_point(aes(t,y2, colour="green")) +
+  geom_point(aes(t,y3, colour="blue")) +
+  geom_point(aes(t,y4, colour="yellow")) +  
+  geom_point(aes(t,y5, colour="red")) +
+  theme_minimal() +geom_vline(xintercept = c)
+```
+
+## Compile
+```{r compile_M4, eval=FALSE}
+continuous_data <- list(r_a = 50, r_e = 1, r_l = 10, 
+                        T = T, D = D, sigma=sigma, n=n)
+
+MarginalChangePoint4 <- stan(file = 'Model_changePointContinuous4.stan', 
+                              data= continuous_data,
+                             iter = 10, chains = 4)
+save(MarginalChangePoint4, file="Fit/MarginalChangePoint4.Rdata")
+```
+
+## Sampling with five patients
+```{r sample_M4, eval=FALSE}
+load(file="Fit/MarginalChangePoint4.Rdata")
+continuous_data <- list(r_a = 50, r_e = 1, r_l = 10, 
+                        T = T, D = D, sigma=sigma, n=n)
+
+fit4 <- stan(fit=MarginalChangePoint4, iter= 1000, chains = 4, 
+             data= continuous_data, cores = 4)
+save(fit4, file="Fit/fit4.Rdata")
+```
+
+## Results for five patients
+```{r print_model4}
+load(file="Fit/fit4.Rdata")
+print(fit4, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
+```
+
+Stan estimates pretty well, but sampling takes a long time.
+
+# Model 5 with observations at uneven time points 
+
+We tried to aloow for observations at irregular time points. 
+
+## Generate data
+```{r generate_data_model5}
+
+T <- as.integer(100) # length of data file
+n <- 1 # number of unique patients
+D <- matrix(vector(mode= "integer", length = T*n), ncol = n) # y
+
+e <- 1 # slope before
+l <- 10 # slope after
+sigma <- 20 # standard deviation of error
+c <- as.integer(rep(40, T)) # change point
+t <- as.integer(1:T)
+
+for (id in 1:n) {
+  D[,id] <- ifelse((t<c), t*e,( c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+}
+
+observed <- as.integer(runif(80, 1,101))
+D <- D[observed]
+c <- c[observed]
+
+mydata <- data.frame(y1 = D, time=observed, c=c)
+g<- ggplot(mydata)
+g +geom_point(aes(time,y1))  +
+  theme_minimal() +geom_vline(xintercept = c)
+```
+
+## Compile
+```{r compile_M5, eval=FALSE}
+continuous_data <- list(r_e = 1, r_l = 10, 
+                        T = length(observed), D = D, sigma=sigma)
+
+MarginalChangePoint5 <- stan(file = 'Model_changePointContinuous5.stan', 
+                              data= continuous_data,
+                             iter = 10, chains = 4)
+save(MarginalChangePoint2, file="Fit/MarginalChangePoint2.Rdata")
+```
+
+But Stan crashes for unexplained reason. error message saved as *error Model 5.txt*
