@@ -3,7 +3,7 @@ real r_e; # prior mean for early slope
 real r_l; # prior mean for late slope
 int<lower=1> T; # number of time points
 int<lower=1> n; # number of unique patients
-real D[T,2]; # Data of y 
+real D[T,n]; # Data of y 
 }
 
 transformed data {
