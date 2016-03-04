@@ -415,7 +415,8 @@ c <- c[observed[,1]] # cut change points repetition to fit number of selected
 continuous_data6 <- list(r_a=50,
                          r_e = 1, 
                          r_l = 10, 
-                         T = length(observed), 
+                         n = n,
+                         T = z, 
                          D = Y,
                          observed=observed,
                          sigma=sigma)
