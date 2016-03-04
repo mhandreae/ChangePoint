@@ -379,7 +379,7 @@ Stan estimates pretty well.
 
 # Model 6
 
-implement irregular times observation to advanced model
+We implement irregular times observation in a model with random intercepts and five patient data sets.
 
 ## Generate data
 ```{r generate_data_model6, eval=FALSE}
@@ -453,7 +453,6 @@ MarginalChangePoint6 <- stan(file = 'Model_changePointContinuous6.stan',
 save(MarginalChangePoint6, file="Fit/MarginalChangePoint6.Rdata")
 ```
 
-
 ## Sampling model 6, irregular times with random intercept
 ```{r sample_M6, eval=FALSE}
 load(file="Fit/MarginalChangePoint6.Rdata")
@@ -463,3 +462,11 @@ fit6 <- stan(fit=MarginalChangePoint6, iter= 1000, chains = 4,
              data= continuous_data6, cores = 4)
 save(fit6, file="Fit/fit6.Rdata")
 ```
+
+## Results for model 6, random intercepts with irregular observations
+```{r print_model6}
+load(file="Fit/fit6.Rdata")
+print(fit6, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
+```
+
+Our rstan model seems to estimate the parameters well.
