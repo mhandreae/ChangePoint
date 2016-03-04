@@ -26,7 +26,7 @@ library(tidyr)
 library(rstan)
 library(rstanarm)
 library(shinystan)
-require(ggplot2)
+library(ggplot2)
 library(parallel)
 library(nlme)
 library(dplyr)
@@ -304,4 +304,41 @@ save(fit4, file="Fit/fit4.Rdata")
 ```{r print_model4}
 load(file="Fit/fit4.Rdata")
 print(fit4, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
+```
+# Model 5 with observations at uneven time points 
+## Generate data
+```{r generate_data_model2}
+
+T <- as.integer(100) # length of data file
+n <- 1 # number of unique patients
+D <- matrix(vector(mode= "integer", length = T*n), ncol = n) # y
+
+e <- 1 # slope before
+l <- 10 # slope after
+sigma <- 20 # standard deviation of error
+c <- as.integer(rep(40, T)) # change point
+t <- as.integer(1:T)
+
+for (id in 1:n) {
+  D[,id] <- ifelse((t<c), t*e,( c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+}
+
+observed <- as.integer(runif(80, 1,101))
+D <- D[observed]
+c <- c[observed]
+
+mydata <- data.frame(y1 = D, time=observed, c=c)
+g<- ggplot(mydata)
+g +geom_point(aes(time,y1))  +
+  theme_minimal() +geom_vline(xintercept = c)
+```
+
+```{r compile_M5, eval=FALSE}
+continuous_data <- list(r_e = 1, r_l = 10, 
+                        T = length(observed), D = D, sigma=sigma)
+
+MarginalChangePoint5 <- stan(file = 'Model_changePointContinuous5.stan', 
+                              data= continuous_data,
+                             iter = 10, chains = 4)
+save(MarginalChangePoint2, file="Fit/MarginalChangePoint2.Rdata")
 ```
