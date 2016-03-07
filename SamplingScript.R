@@ -2,10 +2,11 @@
 
 require(rstan)
 require(rstanarm)
+setwd("~/Projects/ChangePoint")
 load(file="Fit/MarginalChangePoint7.Rdata")
 load(file = "Data/continuous_data7.Rdata")
 
 # with the updated stan file
-fit7 <- stan(fit=MarginalChangePoint7, iter= 10, chains = 4, 
+fit7 <- stan(fit=MarginalChangePoint7, iter= 1000, chains = 4, 
              data= continuous_data7, cores = 4)
 save(fit7, file="Fit/fit7.Rdata")

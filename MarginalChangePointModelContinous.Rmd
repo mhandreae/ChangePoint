@@ -474,7 +474,9 @@ Our rstan model seems to estimate the parameters well, (regardless of the order 
 
 # Model 7
 
-We generate the data in long format and run *rstan* in logn format as suggested in the stan manual under **12.1**
+We generate the data in long format and run *rstan* in long format as suggested in the stan manual under **12.1**
+
+There are five patients each with 60 to 80 observations out of 100 possible time. each has a random intercept (a ~ N(50, 100)) and all have a common slope (pre e=-1 and post l=-10).
 
 ## Generate data
 ```{r generate_data_model7, eval=FALSE}
@@ -560,7 +562,7 @@ MarginalChangePoint7 <- stan(file = 'Model_changePointContinuous7.stan',
 save(MarginalChangePoint7, file="Fit/MarginalChangePoint7.Rdata")
 ```
 
-## Sampling model 6, irregular times with random intercept
+## Sampling model 7, irregular times with random intercept
 ```{r sample_M7, eval=FALSE}
 load(file="Fit/MarginalChangePoint7.Rdata")
 load(file = "Data/continuous_data7.Rdata")
@@ -569,4 +571,10 @@ load(file = "Data/continuous_data7.Rdata")
 fit7 <- stan(fit=MarginalChangePoint7, iter= 10, chains = 4, 
              data= continuous_data7, cores = 4)
 save(fit7, file="Fit/fit7.Rdata")
+```
+
+## Results for model 7, random intercepts with irregular observations
+```{r print_model7}
+load(file="Fit/fit7.Rdata")
+print(fit7, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
 ```
