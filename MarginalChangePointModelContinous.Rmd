@@ -551,6 +551,7 @@ g +geom_path(aes(observed,D, group=id, colour=id)) +
 
 ## Compile
 ```{r compile_M7, eval=FALSE}
+require(rstan)
 load(file = "Data/continuous_data7.Rdata")
 
 MarginalChangePoint7 <- stan(file = 'Model_changePointContinuous7.stan', 
