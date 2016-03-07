@@ -470,4 +470,72 @@ load(file="Fit/fit6.Rdata")
 print(fit6, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
 ```
 
-Our rstan model seems to estimate the parameters well.
+Our rstan model seems to estimate the parameters well, (regardless of the order of loops).
+
+# Model 7
+
+We generate the data in long format and run *rstan* in logn format as suggested in the stan manual under **12.1**
+
+## Generate data
+```{r generate_data_model7, eval=FALSE}
+
+T <- as.integer(100) # max length of data file
+n <- 5 # number of unique patients
+z <- as.integer(c(80,75,70,65,60)) # number observations selected 
+                                  # from patients 1:n
+                
+D <- vector(mode= "integer", length = sum(z)) # Data generated
+Y <- matrix(vector(mode= "integer", length = z*n), ncol = n) # Y selected
+observed <- matrix(vector(mode= "integer", length = z*n), ncol = n) # Time index
+
+a <- rnorm(n, 50, 100) # common intercept
+e <- 1 # slope before change point 
+l <- 10 # slope after change point
+sigma <- 20 # standard deviation of error
+c <- as.integer(rep(40, T)) # change point
+t <- as.integer(1:T)
+
+for (id in 1:n) {
+  D[,id] <- ifelse((t<c), (a[id] +t*e),(a[id] +c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+}
+
+# select a random subset without replacement
+for (o in 1:n){
+observed[,o] <- sort(sample(t, z))
+}
+
+# pick the subset using the indices of observed
+for (y in 1:n){Y[,y] <- D[observed[,y],y]}
+
+c <- c[observed[,1]] # cut change points repetition to fit number of selected
+
+continuous_data6 <- list(r_a=50,
+                         r_e = 1, 
+                         r_l = 10, 
+                         n = n,
+                         T = z, 
+                         D = Y,
+                         observed=observed,
+                         sigma=sigma)
+save(Y, observed, c, file = "Data/generated_data6.Rdata")
+save(continuous_data6, file = "Data/continuous_data6.Rdata")
+```
+
+## Plot generated data
+```{r plot_generated-data6}
+load("Data/generated_data6.Rdata")
+mydata <- data.frame(y1 = Y[,1], 
+                     y2 = Y[,2], 
+                     y3 = Y[,3],
+                     y4 = Y[,4],
+                     y5 = Y[,5],
+                     observed=observed, c=c)
+
+g<- ggplot(mydata)
+g +geom_point(aes(observed[,1],y1)) +
+  geom_point(aes(observed[,2],y2, colour="green")) +
+  geom_point(aes(observed[,3],y3, colour="blue")) +
+  geom_point(aes(observed[,4],y4, colour="yellow")) +  
+  geom_point(aes(observed[,5],y5, colour="red")) +
+  theme_minimal() +geom_vline(xintercept = c)
+```
