@@ -505,8 +505,8 @@ D <- vector_of_length_sumZ
 
 for (i in 2:n) {
 # generate a patient ID
- id[1:z[1]] <- 1
- id[(sum(z[i-1:i]) +1) : (sum(z[i-1:i]) + z[i])] <-i 
+ id[1:z[1]] <- as.integer(1)
+ id[(sum(z[i-1:i]) +1) : (sum(z[i-1:i]) + z[i])] <-as.integer(i) 
 
 # sample from all possible times for each patient
  observed[1:z[1]] <- sort(sample(t, z[1]))
@@ -527,9 +527,9 @@ generated.data <- data.frame(D = D, id=id, observed=observed)
 save(generated.data, a, z, c, file = "Data/generated_data7.Rdata")
 
 # Save data for stan
-continuous_data7 <- list(r_a=100, # intercept prior
-                         r_e = 0, # early slope prior
-                         r_l = 10, # late slope prior
+continuous_data7 <- list(r_a = 50, # intercept prior
+                         r_e = -1, # early slope prior
+                         r_l = -10, # late slope prior
                          n = n,
                          T = T, 
                          sumZ= sumZ,
@@ -544,7 +544,7 @@ load("Data/generated_data7.Rdata")
 
 
 g<- ggplot(generated.data)
-g +geom_path(aes(observed,D, group=id, color=id)) +
+g +geom_path(aes(observed,D, group=id, colour=id)) +
   theme_minimal() +geom_vline(xintercept = c[1])
 ```
 
@@ -564,7 +564,7 @@ load(file="Fit/MarginalChangePoint7.Rdata")
 load(file = "Data/continuous_data7.Rdata")
 
 # with the updated stan file
-fit7 <- stan(fit=MarginalChangePoint7, iter= 1000, chains = 4, 
+fit7 <- stan(fit=MarginalChangePoint7, iter= 10, chains = 4, 
              data= continuous_data7, cores = 4)
 save(fit7, file="Fit/fit7.Rdata")
 ```
