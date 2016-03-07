@@ -584,3 +584,110 @@ print(a)
 ```
 
 The model 7 estimates the parameters reasonably well.
+
+# Model 7
+
+We generate the data in long format and run *rstan* in long format as suggested in the stan manual under **12.1**
+
+There are five patients each with 60 to 80 observations out of 100 possible time. each has a random intercept (a ~ N(50, 100)) and all have a common slope (pre e=-1 and post l=-10).
+
+## Model 7b
+
+We try to generate data using negative time to diagnosis
+
+## Generate data
+```{r generate_data_model7b, eval=FALSE}
+
+T <- as.integer(100) # max length of observation period
+n <- 5 # number of unique patients
+z <- as.integer(c(80,75,70,65,60)) # number observations selected 
+                                  # from patients 1:n
+sumZ <- sum(z)
+
+# Parameters
+a <- rnorm(n, 50, 100) # patient specific intercept
+e <- rep(-1,sumZ)  # common slope before change point 
+l <- rep(-10, sumZ) # common slope after change point
+sigma <- 20 # standard deviation of error
+c <- as.integer(rep(-60, sumZ)) # common change point
+t <- as.integer((-T +1):0)
+
+## Declaration of variables
+#index for Dataframe
+vector_of_length_sumZ <- vector(mode= "integer", length = sumZ)
+# Patient ID
+id <- vector_of_length_sumZ
+# Index of observed times for each patient
+observed <-vector_of_length_sumZ
+# Data 
+D <- vector_of_length_sumZ 
+
+for (i in 2:n) {
+# generate a patient ID
+ id[1:z[1]] <- as.integer(1)
+ id[(sum(z[i-1:i]) +1) : (sum(z[i-1:i]) + z[i])] <-as.integer(i) 
+
+# sample from all possible times for each patient
+ observed[1:z[1]] <- sort(sample(t, z[1]))
+ observed[(sum(z[i-1:i]) +1) : (sum(z[i-1:i]) + z[i])] <- 
+   sort(sample(t, z[i]))
+}
+D <- ifelse((observed<c), #dependent on if before or after change point:
+            # intercept +early slope
+              (a[id] +observed*e),  
+            
+            # intercept +early slope
+              (a[id] +c*e + (observed-c)*l)) + 
+  # add randomn error
+    rnorm(sumZ, 0, sigma)
+
+# Save as data.frame in long format
+generated.data <- data.frame(D = D, id=id, observed=observed)
+save(generated.data, a, z, c, file = "Data/generated_data7b.Rdata")
+
+# Save data for stan
+continuous_data7b <- list(r_a = 50, # intercept prior
+                         r_e = -1, # early slope prior
+                         r_l = -10, # late slope prior
+                         n = n,
+                         T = T, 
+                         sumZ= sumZ,
+                         id=id,
+                         D = generated.data$D,
+                         observed=generated.data$observed)
+save(continuous_data7b, file = "Data/continuous_data7b.Rdata")
+```
+
+## Plot generated data
+```{r plot_generated-data7b}
+load("Data/generated_data7b.Rdata")
+
+
+g<- ggplot(generated.data)
+g +geom_path(aes(observed,D, group=id, colour=id)) +
+  theme_minimal() +geom_vline(xintercept = c[1])
+```
+
+## Compile
+```{r compile_M7b, eval=FALSE}
+require(rstan)
+load(file = "Data/continuous_data7b.Rdata")
+
+MarginalChangePoint7 <- stan(file = 'Model_changePointContinuous7b.stan', 
+                              data= continuous_data7b,
+                             iter = 10, chains = 4)
+save(MarginalChangePoint7b, file="Fit/MarginalChangePoint7b.Rdata")
+```
+
+
+## Sampling model 7, irregular times with random intercept
+```{r sample_M7b, eval=FALSE}
+require(rstan)
+load(file="Fit/MarginalChangePoint7b.Rdata")
+load(file = "Data/continuous_data7b.Rdata")
+
+# with the updated stan file
+fit7b <- stan(fit=MarginalChangePoint7b, iter= 10, chains = 4, 
+             data= continuous_data7b, cores = 4)
+save(fit7b, file="Fit/fit7b.Rdata")
+```
