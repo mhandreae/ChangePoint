@@ -576,5 +576,11 @@ save(fit7, file="Fit/fit7.Rdata")
 ## Results for model 7, random intercepts with irregular observations
 ```{r print_model7}
 load(file="Fit/fit7.Rdata")
+load("Data/generated_data7.Rdata")
+
 print(fit7, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
+print("intercepts")
+print(a)
 ```
+
+The model 7 estimates the parameters reasonably well.
