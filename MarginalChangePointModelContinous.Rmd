@@ -532,6 +532,7 @@ continuous_data7 <- list(r_a=100, # intercept prior
                          r_l = 10, # late slope prior
                          n = n,
                          T = T, 
+                         sumZ= sumZ,
                          D = generated.data$D,
                          observed=generated.data$observed)
 save(continuous_data7, file = "Data/continuous_data7.Rdata")
@@ -551,8 +552,19 @@ g +geom_path(aes(observed,D, group=id, color=id)) +
 ```{r compile_M7, eval=FALSE}
 load(file = "Data/continuous_data7.Rdata")
 
-MarginalChangePoint6 <- stan(file = 'Model_changePointContinuous7.stan', 
+MarginalChangePoint7 <- stan(file = 'Model_changePointContinuous7.stan', 
                               data= continuous_data7,
                              iter = 10, chains = 4)
-save(MarginalChangePoint6, file="Fit/MarginalChangePoint6.Rdata")
+save(MarginalChangePoint7, file="Fit/MarginalChangePoint7.Rdata")
+```
+
+## Sampling model 6, irregular times with random intercept
+```{r sample_M7, eval=FALSE}
+load(file="Fit/MarginalChangePoint7.Rdata")
+load(file = "Data/continuous_data7.Rdata")
+
+# with the updated stan file
+fit7 <- stan(fit=MarginalChangePoint7, iter= 1000, chains = 4, 
+             data= continuous_data7, cores = 4)
+save(fit7, file="Fit/fit7.Rdata")
 ```
