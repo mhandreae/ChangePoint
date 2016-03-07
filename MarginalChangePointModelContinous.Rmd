@@ -533,6 +533,7 @@ continuous_data7 <- list(r_a = 50, # intercept prior
                          n = n,
                          T = T, 
                          sumZ= sumZ,
+                         id=id,
                          D = generated.data$D,
                          observed=generated.data$observed)
 save(continuous_data7, file = "Data/continuous_data7.Rdata")
