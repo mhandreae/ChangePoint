@@ -479,35 +479,63 @@ We generate the data in long format and run *rstan* in logn format as suggested 
 ## Generate data
 ```{r generate_data_model7, eval=FALSE}
 
-T <- as.integer(100) # max length of data file
+T <- as.integer(100) # max length of observation period
 n <- 5 # number of unique patients
 z <- as.integer(c(80,75,70,65,60)) # number observations selected 
                                   # from patients 1:n
-                
-D <- vector(mode= "integer", length = sum(z)) # Data generated
-Y <- matrix(vector(mode= "integer", length = z*n), ncol = n) # Y selected
-observed <- matrix(vector(mode= "integer", length = z*n), ncol = n) # Time index
+sumZ <- sum(z)
 
-a <- rnorm(n, 50, 100) # common intercept
-e <- 1 # slope before change point 
-l <- 10 # slope after change point
+# Parameters
+a <- rnorm(n, 50, 100) # patient specific intercept
+e <- rep(-11,sumZ)  # common slope before change point 
+l <- rep(-10, sumZ) # common slope after change point
 sigma <- 20 # standard deviation of error
-c <- as.integer(rep(40, T)) # change point
+c <- as.integer(rep(40, sumZ)) # common change point
 t <- as.integer(1:T)
 
-for (id in 1:n) {
-  D[,id] <- ifelse((t<c), (a[id] +t*e),(a[id] +c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+## Declaration of variables
+#index for Dataframe
+vector_of_length_sumZ <- vector(mode= "integer", length = sumZ)
+# Patient ID
+id <- vector_of_length_sumZ
+# Index of observed times for each patient
+observed <-vector_of_length_sumZ
+# Data 
+D <- vector_of_length_sumZ 
+
+for (i in 2:n) {
+# generate a patient ID
+ id[1:z[1]] <- 1
+ id[(sum(z[i-1:i]) +1) : (sum(z[i-1:i]) + z[i])] <-i 
+
+# sample from all possible times for each patient
+ observed[1:z[1]] <- sort(sample(t, z[1]))
+ observed[(sum(z[i-1:i]) +1) : (sum(z[i-1:i]) + z[i])] <- 
+   sort(sample(t, z[i]))
 }
 
-# select a random subset without replacement
-for (o in 1:n){
-observed[,o] <- sort(sample(t, z))
-}
 
-# pick the subset using the indices of observed
-for (y in 1:n){Y[,y] <- D[observed[,y],y]}
 
-c <- c[observed[,1]] # cut change points repetition to fit number of selected
+
+
+
+
+
+
+D <- ifelse((observed<c), #dependent on if before or after change point:
+            # intercept +early slope
+              (a[id] +observed*e),  
+            
+            # intercept +early slope
+              (a[id] +c*e + (observed-c)*l)) + 
+  # add randomn error
+    rnorm(sumZ, 0, sigma)
+
+# in long format
+generated.data <- data.frame(D = D, id=id, observed=observed)
+save(D, a, z, file = "Data/generated_data7.Rdata")
+
+
 
 continuous_data6 <- list(r_a=50,
                          r_e = 1, 
@@ -517,22 +545,17 @@ continuous_data6 <- list(r_a=50,
                          D = Y,
                          observed=observed,
                          sigma=sigma)
-save(Y, observed, c, file = "Data/generated_data6.Rdata")
 save(continuous_data6, file = "Data/continuous_data6.Rdata")
 ```
 
 ## Plot generated data
-```{r plot_generated-data6}
-load("Data/generated_data6.Rdata")
-mydata <- data.frame(y1 = Y[,1], 
-                     y2 = Y[,2], 
-                     y3 = Y[,3],
-                     y4 = Y[,4],
-                     y5 = Y[,5],
-                     observed=observed, c=c)
+```{r plot_generated-data7}
+load("Data/generated_data7.Rdata")
 
-g<- ggplot(mydata)
-g +geom_point(aes(observed[,1],y1)) +
+
+g<- ggplot(generated.data)
+g +geom_path(aes(observed,D, group=id, color=id)) 
++
   geom_point(aes(observed[,2],y2, colour="green")) +
   geom_point(aes(observed[,3],y3, colour="blue")) +
   geom_point(aes(observed[,4],y4, colour="yellow")) +  
