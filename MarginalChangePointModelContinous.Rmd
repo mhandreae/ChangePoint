@@ -458,9 +458,10 @@ save(MarginalChangePoint6, file="Fit/MarginalChangePoint6.Rdata")
 load(file="Fit/MarginalChangePoint6.Rdata")
 load(file = "Data/continuous_data6.Rdata")
 
-fit6 <- stan(fit=MarginalChangePoint6, iter= 1000, chains = 4, 
+# with the updated file
+fit6b <- stan(fit=MarginalChangePoint6, iter= 1000, chains = 4, 
              data= continuous_data6, cores = 4)
-save(fit6, file="Fit/fit6.Rdata")
+save(fit6b, file="Fit/fit6.Rdata")
 ```
 
 ## Results for model 6, random intercepts with irregular observations
