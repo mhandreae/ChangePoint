@@ -693,10 +693,9 @@ save(fit7b, file="Fit/fit7b.Rdata")
 ```{r print_model7b}
 load(file="Fit/fit7b.Rdata")
 load("Data/generated_data7b.Rdata")
+load(file = "Data/continuous_data7b.Rdata")
 
 print(fit7b, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
-print("intercepts")
-print(a)
 ```
 
-The intercepts are not correctly identified.
+The change point is identified as `r continuous_data7b$t[40]`, (s = 40 is the index for t the list of time intervals t), so are the slopes (e -1, l -10); the intercepts are almost correctly identified (`r a`), and the error term sigma is well estimated.
