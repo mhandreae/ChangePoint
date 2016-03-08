@@ -25,7 +25,7 @@ real<lower=0> sigma; # error (SD)
 transformed parameters {
 vector[T] lp;
 lp <- rep_vector(log_unif, T);
-for (s in 1:T)
+for (s in (-T +1):0)
 for (index in 1:sumZ)
 lp[s] <- lp[s] + normal_log(D[index], if_else(observed[index] < s, (a[id[index]] +observed[index]*e), (a[id[index]] +s*e +(observed[index]-s)*l) ), sigma);
 }
