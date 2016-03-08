@@ -1,0 +1,27 @@
+---
+title: "Contribute to rstanarm"
+author: "Michael Andreae"
+date: "March 8, 2016"
+output: pdf_document
+---
+
+```{r knitr, echo=FALSE}
+suppressWarnings(library(knitr))
+```
+
+```{r globle_knitr_options, echo=FALSE}
+rm(list=ls())
+suppressWarnings(library(knitr))
+# set options
+opts_chunk$set(fig.width=6, fig.height=4, fig.path='Figs/',
+               echo=FALSE, warning=FALSE, message=FALSE)
+eval_everything=FALSE
+```
+
+## Contribute
+
+To contribute to *rstanarm*, first read the instructions on Github \href{https://github.com/stan-dev/rstanarm/wiki/Contributing-to-development}{<http://github.com/stan-dev/rstanarm/>} and then the \href{https://github.com/stan-dev/rstanarm/wiki/Adding-a-new-model-to-rstanarm}{**specifics**} on adding a new model.
+
+Essentially, first find a similar *exisiting* R function and emulate it.
+
+Here an \href{https://github.com/stan-dev/rstanarm/blob/master/R/stan_lm.R}{** example function**}.
