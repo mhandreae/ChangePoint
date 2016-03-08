@@ -1,0 +1,65 @@
+---
+title: "Continuous Change Point Model by Marginalization"
+author: "Michael Andreae"
+date: "March 1, 2016"
+output: pdf_document
+---
+
+
+```{r knitr, echo=FALSE}
+suppressWarnings(library(knitr))
+```
+
+```{r globle_knitr_options, echo=FALSE}
+rm(list=ls())
+suppressWarnings(library(knitr))
+# set options
+opts_chunk$set(fig.width=6, fig.height=4, fig.path='Figs/',
+               echo=FALSE, warning=FALSE, message=FALSE)
+eval_everything=FALSE
+```
+
+```{r library}
+library(gridExtra)
+require(knitr)
+library(tidyr)
+library(rstan)
+library(rstanarm)
+library(shinystan)
+library(ggplot2)
+library(parallel)
+library(nlme)
+library(dplyr)
+```
+
+# Normal Model 1
+
+Simple model of one set of repeated continous measures with one change point (s=40) and a pre (e=1) and a post (l=10) slope, with some random error (sigma =20).
+
+## Generate Data
+```{r generate_data}
+
+T <- as.integer(100) #length of data file
+D <- vector(mode= "integer", length = T) # y
+
+e <- 1 # slope before
+l <- 10 # slope after
+sigma <- 20 # standard deviation of error
+c <- as.integer(rep(40, T)) # change point
+t <- as.integer(1:T)
+D <- ifelse((t<c), t*e,( c*e + (t-c)*l)) + rnorm(100, 0, sigma)
+
+mydata <- data.frame(y=D, time=t, c=c)
+g<- ggplot(mydata)
+g+ geom_point(aes(t,y)) +theme_minimal() +geom_vline(xintercept = c)
+```
+
+## Compile
+```{r compile, eval=FALSE}
+continuous_data <- list(r_e = 1, r_l = 10, T = T, D = D, sigma=sigma)
+
+MarginalChangePoint <- stan(file = 'Model_changePointContinuous.stan', 
+                            data = continuous_data, 
+                            iter = 10, chains = 4)
+# save(MarginalChangePoint, file="Fit/MarginalChangePoint.Rdata")
+```
