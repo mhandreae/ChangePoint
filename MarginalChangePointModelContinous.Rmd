@@ -647,6 +647,7 @@ continuous_data7b <- list(r_a = 50, # intercept prior
                          r_l = -10, # late slope prior
                          n = n,
                          T = T, 
+                         t=t,
                          sumZ= sumZ,
                          id=id,
                          D = generated.data$D,
