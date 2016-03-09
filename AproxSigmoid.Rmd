@@ -50,7 +50,6 @@ Sigmoid functions approximate the step function and cancel each other out.
 require(ggplot2)
 
 t <- seq(from=-10, to=10, length=1000)
-t1 <- seq(from=-10, to=10, length=1000)
 
 c <- 5
 
@@ -60,11 +59,40 @@ y1 <- 1/(1+ exp(- (-t+c)))
 mydata<- data.frame(y0=y0, y1=y1, y2=y0 +y1, t=t)
 
 g<- ggplot(mydata)
-g +geom_point(aes(x=t0, y=y0))
-g +geom_point(aes(x=t1, y=y1))
+g +geom_point(aes(x=t, y=y0))
+g +geom_point(aes(x=t, y=y1))
 g +geom_point(aes(x=t, y=y2))
 
 
 ```
 
 Stepfunctions with change point cancel each other.
+
+# Stepfunction with slope
+```{r stepfunction3}
+require(ggplot2)
+
+t <- seq(from=-10, to=0, length=100)
+
+c <- -5
+early_slope=-1
+late_slope=-5
+
+y0 <- 1/(1+ exp(- (-t+c)))  * (early_slope *(t)) 
+y1 <- (early_slope *(c)) +
+  ( 1/(1+ exp( -t+c)) * late_slope *(t-c) )
+
+y <- 1/(1+ exp(- (-t+c)))  * (early_slope *(t)) +
+  (early_slope *(c)) +
+  ( 1/(1+ exp( -t+c)) * late_slope *(t-c) )
+  
+mydata<- data.frame(y0=y0, y1=y1, y2=y0+y1, y=y, t=t)
+
+g<- ggplot(mydata)
+g +geom_point(aes(x=t, y=y0))
+g +geom_point(aes(x=t, y=y1))
+g +geom_point(aes(x=t, y=y2)) +ylab("y1+y2")
+g +geom_point(aes(x=t, y=y))
+```
+
+The sum of two sigmoid functions gives a smooth curve.
