@@ -1,0 +1,48 @@
+---
+title: "Logistic Aproximation to the Step function"
+output: pdf_document
+---
+```{r globel_knitr_options}
+suppressWarnings(library(knitr))
+# set options
+opts_chunk$set(fig.width=8, fig.height=6, 
+               fig.alig="left",
+               fig.path='Figs/',
+               echo=FALSE, warning=FALSE, message=FALSE)
+eval_everything=FALSE
+```
+
+## Setup
+```{r library}
+require(knitr)
+library(tidyr)
+library(rstanarm)
+library(shinystan)
+require(ggplot2)
+library(mgcv)
+library(parallel)
+```
+
+# Step Function
+```{r stepfunction1}
+require(ggplot2)
+
+t <- seq(from=-10, to=10, length=1000)
+c <- 5
+
+y0 <- 1/(1+ exp( -t)) 
+y1 <- 1/(1+ exp( t))  
+
+mydata<- data.frame(y0=y0, y1=y1, y2=y0 +y1, t=t)
+
+g<- ggplot(mydata)
+g +geom_point(aes(x=t, y=y0))
+g +geom_point(aes(x=t, y=y1))
+g +geom_point(aes(x=t, y=y2))
+
+
+```
+
+Sigmoid functions approximate the step function and cancel each other out.
+
+#
