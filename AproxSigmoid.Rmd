@@ -97,7 +97,7 @@ g +geom_point(aes(x=t, y=y))
 
 The sum of two sigmoid functions gives a smooth curve.
 
-# Generate Data
+## Generate Data
 ```{r generate_data}
 
 t <- seq(from=-10, to=0, length=100)
@@ -107,6 +107,8 @@ early_slope=-1
 late_slope=-5
 sigma <-1
 
+
+## to complicated
 y <- 1/(1+ exp(- (-t+c)))  * (early_slope *(t)) +
   (early_slope *(c)) +
   ( 1/(1+ exp( -t+c)) * late_slope *(t-c) ) +
@@ -124,4 +126,51 @@ g<- ggplot(mydata)
 g +geom_point(aes(x=t, y=y))
 ```
 
-We generate data with change point c =`r c`, early slope = `r early_slope`, late slope =`r late_slope`, and error ~ N(0, 1)
+We generate data with change point c =`r c`, early slope = `r early_slope`, late slope =`r late_slope`, and error ~ N(0, 1). But these data are too complex to start with.
+
+## Generate simple data
+```{r generate__simple_data, eval=FALSE}
+
+t <- seq(from=-10, to=0, length=100)
+
+c <- -5
+
+sigma <-1
+
+
+## to complicated
+y <- (1/(1+ exp(t-c)))
+## y <- (1/(1+ exp(t)))
+
+#y <- c*t
+#y <- exp(t-c)
+  
+mydata2<- data.frame(y=y, t=t)
+save(mydata2, c,  file="Data/mydata2.Rdata")
+```
+
+## Plot simple data
+```{r plot_simple_data}
+require(ggplot2)
+load("Data/mydata2.Rdata")
+g<- ggplot(mydata2)
+g +geom_point(aes(x=t, y=y))
+```
+
+## Compile
+```{r compile_z1, eval=FALSE}
+require(rstan)
+load("Data/mydata2.Rdata")
+
+data_for_stan <- list(y=mydata2$y, t=mydata2$t, nObs=length(mydata2$y))
+fitz1 <- stan("Stan_z1.stan", data=data_for_stan, iter=100, chains=3)
+fitz2 <- stan(fit=fitz1, data=data_for_stan, iter=1000, chains=3, cores=3)
+save(fitz1, fitz2, file="Fit/fitz1.Rdata")
+```
+
+## Results
+```{r print_fitz1}
+print(fitz1)
+print(fitz2)
+```
+
