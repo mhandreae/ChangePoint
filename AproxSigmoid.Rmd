@@ -72,7 +72,7 @@ Stepfunctions with change point cancel each other.
 ```{r stepfunction3}
 require(ggplot2)
 
-t <- seq(from=-10, to=0, length=100)
+t <- seq(from=-10, to=0, length=1000)
 
 c <- -5
 early_slope=-1
@@ -96,3 +96,32 @@ g +geom_point(aes(x=t, y=y))
 ```
 
 The sum of two sigmoid functions gives a smooth curve.
+
+# Generate Data
+```{r generate_data}
+
+t <- seq(from=-10, to=0, length=100)
+
+c <- -5
+early_slope=-1
+late_slope=-5
+sigma <-1
+
+y <- 1/(1+ exp(- (-t+c)))  * (early_slope *(t)) +
+  (early_slope *(c)) +
+  ( 1/(1+ exp( -t+c)) * late_slope *(t-c) ) +
+  rnorm(length(t),0, sigma)
+  
+mydata<- data.frame(y=y, t=t)
+save(mydata, c, early_slope, late_slope, file="Data/mydata.Rdata")
+```
+
+## Plot data
+```{r plot_data}
+require(ggplot2)
+load("Data/mydata.Rdata")
+g<- ggplot(mydata)
+g +geom_point(aes(x=t, y=y))
+```
+
+We generate data with change point c =`r c`, early slope = `r early_slope`, late slope =`r late_slope`, and error ~ N(0, 1)
