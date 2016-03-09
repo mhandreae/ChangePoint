@@ -12,6 +12,9 @@ opts_chunk$set(fig.width=8, fig.height=6,
 eval_everything=FALSE
 ```
 
+# Introduction.
+We test if two sigmoid functions can simulate a smooth curve and if Stan can estimate the change point of that curve using a logistic approximation of the step function.
+
 ## Setup
 ```{r library}
 require(knitr)
@@ -24,6 +27,8 @@ library(parallel)
 ```
 
 # Step Function
+
+## Simple step function
 ```{r stepfunction1}
 require(ggplot2)
 
@@ -45,7 +50,7 @@ g +geom_point(aes(x=t, y=y2))
 
 Sigmoid functions approximate the step function and cancel each other out.
 
-# Step function with change point
+## Step function with change point
 ```{r stepfunction2}
 require(ggplot2)
 
@@ -89,14 +94,31 @@ y <- 1/(1+ exp(- (-t+c)))  * (early_slope *(t)) +
 mydata<- data.frame(y0=y0, y1=y1, y2=y0+y1, y=y, t=t)
 
 g<- ggplot(mydata)
-g +geom_point(aes(x=t, y=y0))
-g +geom_point(aes(x=t, y=y1))
-g +geom_point(aes(x=t, y=y2)) +ylab("y1+y2")
-g +geom_point(aes(x=t, y=y))
 ```
 
+## First sigmoid
+```{r}
+g +geom_point(aes(x=t, y=y0))
+```
+
+## Second sigmoid
+```{r}
+g +geom_point(aes(x=t, y=y1))
+```
+
+## Added sigmoids
+```{r}
+g +geom_point(aes(x=t, y=y2)) +ylab("y1+y2")
+```
+
+## Two sigmoid functions added
+
+```{r tow_sigmoid _function}
+g +geom_point(aes(x=t, y=y)) 
+```
 The sum of two sigmoid functions gives a smooth curve.
 
+# Stan model to find change point
 ## Generate Data
 ```{r generate_data}
 
@@ -170,7 +192,9 @@ save(fitz1, fitz2, file="Fit/fitz1.Rdata")
 
 ## Results
 ```{r print_fitz1}
+load("Fit/fitz1.Rdata")
 print(fitz1)
 print(fitz2)
 ```
 
+Stan does not estimate the change point c=-5 correctly, possibly due to the non-linear transformation of the data?  We used the Stan Model in *Stan_z1.stan*. 
