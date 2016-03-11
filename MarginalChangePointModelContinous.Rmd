@@ -699,3 +699,105 @@ print(fit7b, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
 ```
 
 The change point is identified as `r continuous_data7b$t[40]`, (s = 40 is the index for t the list of time intervals t), so are the slopes (e -1, l -10); the intercepts are almost correctly identified (`r a`), and the error term sigma is well estimated.
+
+# Model stan_x
+
+We test the model stan_x used to estimate the data provided by Dr. Hall.
+
+## Generate data
+```{r generate_data_model_stan_x, eval=FALSE}
+
+T <- as.integer(100) # max length of observation period
+n <- 5 # number of unique patients
+z <- as.integer(c(80,75,70,65,60)) # number observations selected 
+                                  # from patients 1:n
+sumZ <- sum(z)
+
+# Parameters
+a <- rnorm(n, 35, 20) # patient specific intercept
+e <- rep(-1,sumZ)  # common slope before change point 
+l <- rep(-10, sumZ) # common slope after change point
+sigma <- 10 # standard deviation of error
+c <- as.integer(rep(-60, sumZ)) # common change point
+t <- as.integer((-T +1):0)
+
+## Declaration of variables
+#index for Dataframe
+vector_of_length_sumZ <- vector(mode= "integer", length = sumZ)
+# Patient ID
+id <- vector_of_length_sumZ
+# Index of observed times for each patient
+observed <-vector_of_length_sumZ
+# Data 
+D <- vector_of_length_sumZ 
+
+for (i in 2:n) {
+# generate a patient ID
+ id[1:z[1]] <- as.integer(1)
+ id[(sum(z[i-1:i]) +1) : (sum(z[i-1:i]) + z[i])] <-as.integer(i) 
+
+# sample from all possible times for each patient
+ observed[1:z[1]] <- sort(sample(t, z[1]))
+ observed[(sum(z[i-1:i]) +1) : (sum(z[i-1:i]) + z[i])] <- 
+   sort(sample(t, z[i]))
+}
+D <- ifelse((observed<c), #dependent on if before or after change point:
+            # intercept +early slope
+              (a[id] +observed*e),  
+            
+            # intercept +early slope
+              (a[id] +c*e + (observed-c)*l)) + 
+  # add randomn error
+    rnorm(sumZ, 0, sigma)
+
+# Save as data.frame in long format
+generated.data.stan_x <- data.frame(D = D, id=id, observed=observed)
+save(generated.data.stan_x, a, z, c, file = "Data/generated.data.stan_x.Rdata")
+
+# Save data for stan
+fake_stan_x <- list(prior_a = 35, # intercept prior
+                         prior_e = 0, # early slope prior
+                         prior_l = 0, # late slope prior
+                         n = n,
+                         span = T, 
+                         t=t,
+                         nObs= sumZ,
+                         id=id,
+                         D = generated.data.stan_x$D,
+                         observed=generated.data.stan_x$observed)
+save(fake_stan_x, file = "Data/fake_stan_x.Rdata")
+```
+
+## Plot generated data
+```{r plot_generated-data_stan_x}
+require(ggplot2)
+load("Data/generated.data.stan_x.Rdata")
+
+
+g<- ggplot(generated.data.stan_x)
+g +geom_path(aes(observed,D, group=id, colour=id)) +
+  theme_minimal() +geom_vline(xintercept = c[1])
+```
+
+## Compile
+```{r compile_fake_stan_x_fit, eval=FALSE}
+require(rstan)
+load(file = "Data/fake_stan_x.Rdata")
+
+fake_stan_x_fit <- stan(file = 'Stan_x1t.stan', 
+                              data= fake_stan_x,
+                             iter = 10, chains = 4)
+save(fake_stan_x_fit, file="Fit/fake_stan_x_fit.Rdata")
+```
+
+## Sampling model stan_x
+```{r sample_stan_x, eval=FALSE}
+require(rstan)
+load(file="Fit/fake_stan_x_fit.Rdata")
+load(file = "Data/fake_stan_x.Rdata")
+
+# with the updated stan file
+fake_stan_x1t <- stan(fit=fake_stan_x_fit, iter= 1000, chains = 4, 
+             data= fake_stan_x, cores = 3)
+save(fake_stan_x1t, file="Fit/fake_stan_x1t.Rdata")
+```
