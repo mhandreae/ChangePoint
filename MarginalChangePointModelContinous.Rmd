@@ -797,7 +797,7 @@ load(file="Fit/fake_stan_x_fit.Rdata")
 load(file = "Data/fake_stan_x.Rdata")
 
 # with the updated stan file
-fake_stan_x1t <- stan(fit=fake_stan_x_fit, iter= 1000, chains = 4, 
+fake_stan_x1t <- stan(fit=fake_stan_x_fit, iter= 1000, chains = 3, 
              data= fake_stan_x, cores = 3)
 save(fake_stan_x1t, file="Fit/fake_stan_x1t.Rdata")
 ```
