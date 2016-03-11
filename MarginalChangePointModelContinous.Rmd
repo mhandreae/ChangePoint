@@ -801,3 +801,14 @@ fake_stan_x1t <- stan(fit=fake_stan_x_fit, iter= 1000, chains = 3,
              data= fake_stan_x, cores = 3)
 save(fake_stan_x1t, file="Fit/fake_stan_x1t.Rdata")
 ```
+
+## Results for model stan_x, random intercepts with irregular observations
+```{r print_model_stan_x}
+load(file="Fit/fake_stan_x1t.Rdata")
+load("Data/fake_stan_x.Rdata")
+load(file = "Data/generated.data.stan_x.Rdata")
+
+print(fake_stan_x1t, pars = c("a", "e", "l", "s", "sigma"), probs= c(0.025, 0.5, 0.975))
+```
+
+The change point is identified as `r fake_stan_x$t[41]`, (s = 41 is the index for t the list of time intervals t), so are the slopes (e -1, l -10); the intercepts are almost correctly identified (`r a`), and the error term sigma is well estimated.
